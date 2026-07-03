@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - Technical Designer Terminal</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 40px 20px; margin: 0; }
+    .container { max-width: 600px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 6px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+    h2 { margin-top: 0; color: #fff; border-bottom: 1px solid #1f2937; padding-bottom: 10px; }
+    .meta-info { font-size: 13px; color: #eab308; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; background: rgba(234, 179, 8, 0.1); padding: 8px; border-radius: 4px; display: inline-block;}
+    .section-title { font-size: 13px; color: #3b82f6; font-weight: bold; margin-top: 25px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px dashed #334155; padding-bottom: 5px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: #eab308; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    button { width: 100%; margin-top: 30px; padding: 12px; background: #d97706; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+    button:hover { background: #b45309; }
+    .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; color: #10b981; font-weight: bold; }
+    .nav-links { display: flex; justify-content: space-between; margin-top: 25px; font-size: 13px; border-top: 1px solid #1f2937; padding-top: 15px; }
+    a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🎨 Technical Designer Terminal</h2>
+    <div id="role-tag" class="meta-info">Authorized Mode Active</div>
+    
+    <form id="designer-form">
+      <label>Select Active Style Job Track</label>
+      <select id="style-select" required>
+        <option value="">-- Fetching active tracking entries... --</option>
+      </select>
+
+      <div class="section-title">Blueprint & Stage Specs</div>
+      
+      <label>Sample Type / Stage</label>
+      <select id="sample_type_stage" required>
+        <option value="Proto Sample">Proto Sample</option>
+        <option value="Fit Sample">Fit Sample</option>
+        <option value="Size Set Sample">Size Set Sample</option>
+        <option value="Pre-Production Sample (PPS)">Pre-Production Sample (PPS)</option>
+        <option value="Production Release Track">Production Release Track</option>
+      </select>
+
+      <label>Yarn Composition Spec</label>
+      <input type="text" id="yarn_composition" required placeholder="e.g., 80% Organic Cotton / 20% Polyester">
+
+      <div class="grid-2">
+        <div>
+          <label>Yarn Count</label>
+          <input type="text" id="yarn_count" required placeholder="e.g., 2/32 Nm, 1/15 Nm">
+        </div>
+        <div>
+          <label>Yarn Ply Allocation</label>
+          <input type="text" id="yarn_ply" required placeholder="e.g., 1-Ply, 2-Ply, 4-Ply">
+        </div>
+      </div>
+
+      <div class="section-title">Physical Dimensional Metrics</div>
+
+      <div class="grid-2">
+        <div>
+          <label>Needle Point (Density Index)</label>
+          <input type="text" id="designer_needle_point" required placeholder="e.g., 50 Ndl">
+        </div>
+        <div>
+          <label>Courses Point</label>
+          <input type="text" id="designer_courses_point" required placeholder="e.g., 72 Cs">
+        </div>
+      </div>
+
+      <label>Fabric Tension Specification (Fixed Measurement Indicator)</label>
+      <input type="text" id="designer_tension_spec" required placeholder="e.g., 12.5 cm fixed per 50 Ndl / 70 Cs">
+
+      <label>Fabric / Garment Target Weight</label>
+      <input type="text" id="designer_weight" required placeholder="e.g., 340 grams, 410g">
+
+      <div class="section-title">Technical Validation Sign-offs</div>
+      <p style="font-size: 11px; color: #9ca3af; margin: 0 0 10px;">Specify your identification handle to authorize these metrics down the floor channels [INDEX].</p>
+
+      <div class="grid-2">
+        <div>
+          <label>Weight Validated By (Designer Name)</label>
+          <input type="text" id="designer_weight_validated_by" required placeholder="Your signature reference">
+        </div>
+        <div>
+          <label>Tension Validated By (Designer Name)</label>
+          <input type="text" id="designer_tension_validated_by" required placeholder="Your signature reference">
+        </div>
+      </div>
+
+      <button type="submit">Commit Technical Blueprint Specifications</button>
+      <div id="status-msg" class="msg">Design specifications and validations committed cleanly!</div>
+    </form>
+
+    <div class="nav-links">
+      <a href="/dashboard.html">🖥️ View Production Dashboard</a>
+      <a href="/index.html">🚪 Exit Terminal</a>
+    </div>
+  </div>
+
+  <script>
+    const userRole = localStorage.getItem('helicon_dept') || 'Designer';
+    document.getElementById('role-tag').textContent = `Authorized Mode: [${userRole.toUpperCase()}]`;
+
+    // Security Gate check
+    if (!localStorage.getItem('helicon_token')) {
+      window.location.href = '/index.html';
+    }
+
+    // Populate active job references from postgres tables dynamically
+    async function populateStyleDropdown() {
+      try {
+        const response = await fetch('/api/factory/orders');
+        if (!response.ok) throw new Error('Data drop array sync error');
+        const orders = await response.json();
+        
+        const select = document.getElementById('style-select');
+        select.innerHTML = '<option value="">-- Choose Queue Style Reference --</option>';
+        
+        orders.forEach(order => {
+          const opt = document.createElement('option');
+          opt.value = order.style;
+          opt.textContent = `${order.style} (${order.buyer})`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById('style-select').innerHTML = '<option value="">Error connecting to tracking database metrics.</option>';
+      }
+    }
+
+    // Submit payload changes cleanly using unified adaptive component patch endpoint
+    document.getElementById('designer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('status-msg');
+      msg.style.display = 'none';
+
+      const payload = {
+        style: document.getElementById('style-select').value,
+        fields: {
+          sample_type_stage: document.getElementById('sample_type_stage').value,
+          yarn_composition: document.getElementById('yarn_composition').value,
+          yarn_count: document.getElementById('yarn_count').value,
+          yarn_ply: document.getElementById('yarn_ply').value,
+          designer_needle_point: document.getElementById('designer_needle_point').value,
+          designer_courses_point: document.getElementById('designer_courses_point').value,
+          designer_tension_spec: document.getElementById('designer_tension_spec').value,
+          designer_weight: document.getElementById('designer_weight').value,
+          designer_weight_validated_by: document.getElementById('designer_weight_validated_by').value,
+          designer_tension_validated_by: document.getElementById('designer_tension_validated_by').value,
+          status: 'In Designers Hand'
+        }
+      };
+
+      try {
+        const response = await fetch('/api/factory/component-update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          msg.style.display = 'block';
+          document.getElementById('designer-form').reset();
+          await populateStyleDropdown();
+        } else {
+          alert('Failed to commit blueprint fields to pipeline.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Communication channel error.');
+      }
+    });
+
+    populateStyleDropdown();
+  </script>
+</body>
+</html>

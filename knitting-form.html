@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - Knitting Department Terminal</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 40px 20px; margin: 0; }
+    .container { max-width: 650px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 6px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+    h2 { margin-top: 0; color: #fff; border-bottom: 1px solid #1f2937; padding-bottom: 10px; }
+    .meta-info { font-size: 13px; color: #10b981; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 4px; display: inline-block;}
+    .section-title { font-size: 13px; color: #10b981; font-weight: bold; margin-top: 25px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px dashed #22c55e40; padding-bottom: 5px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: #10b981; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    button { width: 100%; margin-top: 30px; padding: 12px; background: #059669; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+    button:hover { background: #047857; }
+    .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; color: #10b981; font-weight: bold; }
+    .nav-links { display: flex; justify-content: space-between; margin-top: 25px; font-size: 13px; border-top: 1px solid #1f2937; padding-top: 15px; }
+    a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>⚙️ Knitting Department Execution Terminal</h2>
+    <div id="role-tag" class="meta-info">Floor Mode Active</div>
+    
+    <form id="knitting-form">
+      <label>Select Target Style Track</label>
+      <select id="style-select" required>
+        <option value="">-- Fetching active tracking entries... --</option>
+      </select>
+
+      <!-- PHASE A: KNITTING SAMPLE TESTING SIGN-OFFS -->
+      <div class="section-title">Stage 1: Knitting Sample Testing Verification</div>
+      
+      <div class="grid-2">
+        <div>
+          <label>Speed Approved By (Programmer Head)</label>
+          <input type="text" id="programmer_speed_validated_by" required placeholder="Signature Sign-off Handle">
+        </div>
+        <div>
+          <label>Minutes Approved By (Programmer Head)</label>
+          <input type="text" id="programmer_minutes_validated_by" required placeholder="Signature Sign-off Handle">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Weight Validated By (Designer Head)</label>
+          <input type="text" id="designer_weight_validated_by" required placeholder="Signature Sign-off Handle">
+        </div>
+        <div>
+          <label>Tension Validated By (Designer Head)</label>
+          <input type="text" id="designer_tension_validated_by" required placeholder="Signature Sign-off Handle">
+        </div>
+      </div>
+
+      <!-- PHASE B: MASS LIVE MACHINE PRODUCTION FLOOR -->
+      <div class="section-title">Stage 2: Live Floor Production Monitoring</div>
+      
+      <div class="grid-2">
+        <div>
+          <label>Knitting Machines Planned</label>
+          <input type="number" id="knit_mc_planned" required min="0" placeholder="0">
+        </div>
+        <div>
+          <label>Knitting Machines Running</label>
+          <input type="number" id="knit_mc_running" required min="0" placeholder="0">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Target Pieces (Pcs)</label>
+          <input type="number" id="target_pcs" required min="0" placeholder="0">
+        </div>
+        <div>
+          <label>Achieved Pieces (Actual Yield)</label>
+          <input type="number" id="achieved_pcs" required min="0" placeholder="0">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Target SAH</label>
+          <input type="number" id="target_sah" step="0.01" required min="0" placeholder="0.00">
+        </div>
+        <div>
+          <label>Achieved SAH</label>
+          <input type="number" id="achieved_sah" step="0.01" required min="0" placeholder="0.00">
+        </div>
+      </div>
+
+      <!-- PHASE C: SHOP FLOOR SMV VALIDATIONS -->
+      <div class="section-title">Stage 3: Shop Floor SMV Tracking Validation</div>
+      
+      <div class="grid-3">
+        <div>
+          <label>Target SMV</label>
+          <input type="number" id="target_smv" step="0.01" required min="0" placeholder="0.00">
+        </div>
+        <div>
+          <label>Planned SMV</label>
+          <input type="number" id="planned_smv" step="0.01" required min="0" placeholder="0.00">
+        </div>
+        <div>
+          <label>Actual Running SMV</label>
+          <input type="number" id="actual_smv" step="0.01" required min="0" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Actual SMV Validated By (Programmer Head)</label>
+          <input type="text" id="floor_smv_validated_by_programmer_head" required placeholder="Signature Name">
+        </div>
+        <div>
+          <label>Actual SMV Validated By (Knitting Head)</label>
+          <input type="text" id="floor_smv_validated_by_knitting_head" required placeholder="Signature Name">
+        </div>
+      </div>
+
+      <label>Pipeline Stage Deployment Status</label>
+      <select id="status" required>
+        <option value="Live Floor Knitting" selected>Live Floor Knitting</option>
+        <option value="Knitting Complete">Knitting Complete</option>
+        <option value="Shortage On Hold">Shortage On Hold</option>
+      </select>
+
+      <button type="submit">Deploy Knitting Floor Production Metrics</button>
+      <div id="status-msg" class="msg">Knitting sample validations and floor logs committed successfully!</div>
+    </form>
+
+    <div class="nav-links">
+      <a href="/dashboard.html">🖥️ View Production Dashboard</a>
+      <a href="/index.html">🚪 Exit Terminal</a>
+    </div>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('helicon_token')) window.location.href = '/index.html';
+
+    async function populateStyleDropdown() {
+      try {
+        const response = await fetch('/api/factory/orders');
+        const orders = await response.json();
+        const select = document.getElementById('style-select');
+        select.innerHTML = '<option value="">-- Choose Active Style Reference --</option>';
+        orders.forEach(order => {
+          const opt = document.createElement('option');
+          opt.value = order.style;
+          opt.textContent = `${order.style} (${order.buyer})`;
+          select.appendChild(opt);
+        });
+      } catch (err) { console.error(err); }
+    }
+
+    document.getElementById('knitting-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('status-msg');
+      msg.style.display = 'none';
+
+      const payload = {
+        style: document.getElementById('style-select').value,
+        fields: {
+          programmer_speed_validated_by: document.getElementById('programmer_speed_validated_by').value,
+          programmer_minutes_validated_by: document.getElementById('programmer_minutes_validated_by').value,
+          designer_weight_validated_by: document.getElementById('designer_weight_validated_by').value,
+          designer_tension_validated_by: document.getElementById('designer_tension_validated_by').value,
+          knit_mc_planned: parseInt(document.getElementById('knit_mc_planned').value, 10),
+          knit_mc_running: parseInt(document.getElementById('knit_mc_running').value, 10),
+          target_pcs: parseInt(document.getElementById('target_pcs').value, 10),
+          achieved_pcs: parseInt(document.getElementById('achieved_pcs').value, 10),
+          total_knitted_pcs: parseInt(document.getElementById('achieved_pcs').value, 10), // Backwards row safety mapping
+          target_sah: parseFloat(document.getElementById('target_sah').value),
+          achieved_sah: parseFloat(document.getElementById('achieved_sah').value),
+          target_smv: parseFloat(document.getElementById('target_smv').value),
+          planned_smv: parseFloat(document.getElementById('planned_smv').value),
+          actual_smv: parseFloat(document.getElementById('actual_smv').value),
+          floor_smv_validated_by_programmer_head: document.getElementById('floor_smv_validated_by_programmer_head').value,
+          floor_smv_validated_by_knitting_head: document.getElementById('floor_smv_validated_by_knitting_head').value,
+          status: document.getElementById('status').value
+        }
+      };
+
+      try {
+        const response = await fetch('/api/factory/component-update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          msg.style.display = 'block';
+          document.getElementById('knitting-form').reset();
+          populateStyleDropdown();
+        } else {
+          alert('Failed to deploy Knitting parameters downstream.');
+        }
+      } catch (err) { console.error(err); }
+    });
+
+    populateStyleDropdown();
+  </script>
+</body>
+</html>

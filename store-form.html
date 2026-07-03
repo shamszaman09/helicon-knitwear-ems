@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Store Inventory Terminal</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 30px; }
+    .container { max-width: 500px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; padding: 25px; border-radius: 6px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 12px 0 4px; text-transform: uppercase; }
+    input, select { width: 100%; padding: 8px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; }
+    button { width: 100%; margin-top: 20px; padding: 10px; background: #3b82f6; color: #fff; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📦 Material Store Tracking Terminal</h2>
+    <form id="store-form">
+      <label>Select Target Style</label><select id="style-select" required></select>
+      <label>Yarn Name Specification</label><input type="text" id="yarn_name" required>
+      <label>Yarn In House Status</label><select id="yarn_status"><option value="Yes">Yes</option><option value="No">No</option></select>
+      <label>Yarn Approx In-House Date (Leave blank if Yes)</label><input type="date" id="yarn_date">
+      <label>Accessories In House Status</label><select id="acc_status"><option value="Yes">Yes</option><option value="No">No</option></select>
+      <label>Accessories Approx In-House Date (Leave blank if Yes)</label><input type="date" id="acc_date">
+      <label>Merchant Date Confirmation</label><select id="merchant_conf"><option value="Confirmed by Merchant">Confirmed by Merchant</option><option value="Pending Merchant Approval">Pending Merchant Approval</option></select>
+      <button type="submit">Update Store Logs</button>
+    </form>
+    <div style="margin-top:15px; font-size:12px;"><a href="/dashboard.html" style="color:#3b82f6; text-decoration:none;">🖥️ View Dashboard</a></div>
+  </div>
+  <script>
+    async function loadStyles() {
+      const res = await fetch('/api/factory/orders');
+      const data = await res.json();
+      const select = document.getElementById('style-select');
+      select.innerHTML = data.map(o => `<option value="${o.style}">${o.style} (${o.buyer})</option>`).join('');
+    }
+    document.getElementById('store-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        style: document.getElementById('style-select').value,
+        fields: {
+          yarn_name: document.getElementById('yarn_name').value,
+          yarn_in_house_status: document.getElementById('yarn_status').value,
+          yarn_approx_in_house_date: document.getElementById('yarn_date').value,
+          accessories_in_house_status: document.getElementById('acc_status').value,
+          accessories_approx_in_house_date: document.getElementById('acc_date').value,
+          merchant_date_confirmation_status: document.getElementById('merchant_conf').value
+        },
+        status: document.getElementById('yarn_status').value === 'Yes' && document.getElementById('acc_status').value === 'Yes' ? 'Yarn & Accessories Ready' : 'Yarn-Pending'
+      };
+      const res = await fetch('/api/factory/parameter-update', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      if (res.ok) { alert('Store Inventory Logged.'); }
+    });
+    loadStyles();
+  </script>
+</body>
+</html>

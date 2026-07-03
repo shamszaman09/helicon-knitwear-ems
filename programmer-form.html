@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - M1 CAD Programmer Terminal</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 40px 20px; margin: 0; }
+    .container { max-width: 600px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 6px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+    h2 { margin-top: 0; color: #fff; border-bottom: 1px solid #1f2937; padding-bottom: 10px; }
+    .meta-info { font-size: 13px; color: #3b82f6; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; background: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 4px; display: inline-block;}
+    .section-title { font-size: 13px; color: #3b82f6; font-weight: bold; margin-top: 25px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px dashed #334155; padding-bottom: 5px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select, textarea { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; font-size: 14px; font-family: sans-serif; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    button { width: 100%; margin-top: 30px; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+    button:hover { background: #1d4ed8; }
+    .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; color: #10b981; font-weight: bold; }
+    .nav-links { display: flex; justify-content: space-between; margin-top: 25px; font-size: 13px; border-top: 1px solid #1f2937; padding-top: 15px; }
+    a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>💻 M1 CAD Programmer Terminal</h2>
+    <div id="role-tag" class="meta-info">Authorized Mode Active</div>
+    
+    <form id="programmer-form">
+      <label>Select Target Style Program</label>
+      <select id="style-select" required>
+        <option value="">-- Fetching active tracking entries... --</option>
+      </select>
+
+      <div class="section-title">Machine Configuration Blueprint</div>
+      
+      <div class="grid-2">
+        <div>
+          <label>Machine Model / Type</label>
+          <input type="text" id="machine_type" required placeholder="e.g., Stoll CMS 530, Shima Seiki">
+        </div>
+        <div>
+          <label>Machine Gauge Allocation (GG)</label>
+          <input type="text" id="gauge" required placeholder="e.g., 3GG, 7GG, 12GG, 14GG">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>System Mode Configuration</label>
+          <select id="machine_system" required>
+            <option value="1">1 System</option>
+            <option value="2">2 Systems</option>
+            <option value="3" selected>3 Systems</option>
+          </select>
+        </div>
+        <div>
+          <label>Knitting Structural Way</label>
+          <select id="knitting_way" required>
+            <option value="normal">Normal</option>
+            <option value="technique">Technique</option>
+            <option value="castoff">Castoff</option>
+            <option value="technique-castoff">Technique-Castoff</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">Pattern Generation Productivity Specs</div>
+
+      <div class="grid-2">
+        <div>
+          <label>Target Machine Speed</label>
+          <input type="text" id="machine_speed" required placeholder="e.g., 1.2 m/s, 1.3 m/s">
+        </div>
+        <div>
+          <label>Knitting Minutes (Per Panel/Pcs)</label>
+          <input type="number" id="knitting_minutes" required min="1" placeholder="e.g., 14">
+        </div>
+      </div>
+
+      <label>Total Panels Quantity Layout (Per Garment)</label>
+      <input type="number" id="panels_qty" required min="1" placeholder="e.g., 4 (Front, Back, 2 Sleeves)">
+
+      <label>Structure / Stitch Technical Specification Summary</label>
+      <textarea id="structure_stitch_spec" rows="3" required placeholder="e.g., Half-Cardigan stitch mapping layout, cable structures..."></textarea>
+
+      <div class="section-title">Programming Room Head Validations</div>
+      <p style="font-size: 11px; color: #9ca3af; margin: 0 0 10px;">Enter verification signatures to authorize speed parameters for floor production [INDEX].</p>
+
+      <div class="grid-2">
+        <div>
+          <label>Speed Validated By (Programmer Head Name)</label>
+          <input type="text" id="programmer_speed_validated_by" required placeholder="Enter validator handle">
+        </div>
+        <div>
+          <label>Minutes Validated By (Programmer Head Name)</label>
+          <input type="text" id="programmer_minutes_validated_by" required placeholder="Enter validator handle">
+        </div>
+      </div>
+
+      <button type="submit">Commit CAD Program Blueprint Parameters</button>
+      <div id="status-msg" class="msg">CAD configuration profile data and validations committed cleanly!</div>
+    </form>
+
+    <div class="nav-links">
+      <a href="/dashboard.html">🖥️ View Production Dashboard</a>
+      <a href="/index.html">🚪 Exit Terminal</a>
+    </div>
+  </div>
+
+  <script>
+    const userRole = localStorage.getItem('helicon_dept') || 'Programmer';
+    document.getElementById('role-tag').textContent = `Authorized Mode: [${userRole.toUpperCase()}]`;
+
+    // Gating mechanism check
+    if (!localStorage.getItem('helicon_token')) {
+      window.location.href = '/index.html';
+    }
+
+    // Populate ongoing job matrix drop array profiles cleanly
+    async function populateStyleDropdown() {
+      try {
+        const response = await fetch('/api/factory/orders');
+        if (!response.ok) throw new Error('Data grid synchronization crash');
+        const orders = await response.json();
+        
+        const select = document.getElementById('style-select');
+        select.innerHTML = '<option value="">-- Choose Queue Style Reference --</option>';
+        
+        orders.forEach(order => {
+          const opt = document.createElement('option');
+          opt.value = order.style;
+          opt.textContent = `${order.style} (${order.buyer})`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById('style-select').innerHTML = '<option value="">Error connecting to network log index.</option>';
+      }
+    }
+
+    // Capture and patch form state back into database via short component update endpoint
+    document.getElementById('programmer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('status-msg');
+      msg.style.display = 'none';
+
+      const payload = {
+        style: document.getElementById('style-select').value,
+        fields: {
+          machine_type: document.getElementById('machine_type').value,
+          gauge: document.getElementById('gauge').value,
+          machine_system: document.getElementById('machine_system').value,
+          knitting_way: document.getElementById('knitting_way').value,
+          machine_speed: document.getElementById('machine_speed').value,
+          knitting_minutes: parseInt(document.getElementById('knitting_minutes').value, 10),
+          panels_qty: parseInt(document.getElementById('panels_qty').value, 10),
+          structure_stitch_spec: document.getElementById('structure_stitch_spec').value,
+          programmer_speed_validated_by: document.getElementById('programmer_speed_validated_by').value,
+          programmer_minutes_validated_by: document.getElementById('programmer_minutes_validated_by').value,
+          status: 'Programming'
+        }
+      };
+
+      try {
+        const response = await fetch('/api/factory/component-update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          msg.style.display = 'block';
+          document.getElementById('programmer-form').reset();
+          await populateStyleDropdown();
+        } else {
+          alert('Failed to transmit CAD operational data down pipeline channels.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network interface connection anomaly detected.');
+      }
+    });
+
+    populateStyleDropdown();
+  </script>
+</body>
+</html>
