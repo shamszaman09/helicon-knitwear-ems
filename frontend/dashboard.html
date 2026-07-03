@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon Ltd - Protected Monitoring Dashboard</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 20px; margin: 0; }
+    header { border-bottom: 1px solid #1f2937; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 22px; color: #fff; }
+    .table-container { background-color: #111827; border: 1px solid #1f2937; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { background-color: #1f2937; color: #9ca3af; padding: 12px 16px; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #374151; letter-spacing: 0.5px; }
+    td { padding: 14px 16px; border-bottom: 1px solid #1f2937; color: #e5e7eb; }
+    .status-pill { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #2a2a35; color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); display: inline-block; }
+    .logout-btn { background: #374151; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+    .logout-btn:hover { background: #ef4444; }
+    #secure-shield { display: none; text-align: center; padding: 100px 20px; color: #ef4444; font-size: 20px; font-weight: bold; font-family: sans-serif; }
+    .nav-btn { background: #1e293b; color: #3b82f6; border: 1px solid #334155; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold; margin-right: 10px; transition: background 0.2s; }
+    .nav-btn:hover { background: #334155; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden Protection Barrier Overlay Layer -->
+  <div id="secure-shield">⛔ Access Denied. High-security terminal area. Please log in first.</div>
+
+  <!-- Primary Protected Container Block -->
+  <div id="dashboard-content" style="display: none;">
+    <header>
+      <h1>Master Manufacturing Progress Log Grid</h1>
+      <div style="display: flex; align-items: center;">
+        <span id="user-tag" style="margin-right: 20px; color:#9ca3af; font-size:13px; font-weight:bold; background: #1e293b; padding: 6px 12px; border-radius: 4px; border: 1px solid #334155;"></span>
+        <a href="/index.html" class="nav-btn">Hub Terminal</a>
+        <button class="logout-btn" onclick="logout()">Exit System</button>
+      </div>
+    </header>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>SLNo</th>
+            <th>Buyer</th>
+            <th>Style Ref No</th>
+            <th>Gauge</th>
+            <th>Yarn Build Spec</th>
+            <th>Knitted Quantity</th> <!-- Verified Column Node Alignment -->
+            <th>Designer Name</th>
+            <th>Programmer Name</th>
+            <th>Inquiry Recv Date</th>
+            <th>Require Delivery Date</th>
+            <th>Current Pipeline Status</th>
+          </tr>
+        </thead>
+        <tbody id="grid-rows-target">
+          <tr>
+            <td colspan="11" style="text-align: center; padding: 30px; color: #9ca3af;">Loading production parameters loop...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="app_v2.js"></script>
+</body>
+</html>
