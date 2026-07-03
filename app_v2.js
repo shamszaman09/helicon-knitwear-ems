@@ -12,24 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dashboard-content').style.display = 'block';
   document.getElementById('user-tag').textContent = `Terminal Room: [${dept.toUpperCase()}]`;
 
-  // Main local database array cache container
   let cachedOrders = [];
 
-  // Central rendering function responsible for writing table cells rows
   function renderTableRows(ordersArray) {
     const tbody = document.getElementById('grid-rows-target');
+    if (!tbody) return;
+    
     if (ordersArray.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="55" style="text-align:center; padding:30px; color:#9ca3af;">No matching tracking entries discovered.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="55" style="text-align:center; padding:30px; color:#9ca3af;">No matching entries found.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = ordersArray.map(row => {
-      const fmtDate = (dStr) => dStr ? dStr.split('T')[0] : '—';
+      const fmtDate = (dStr) => {
+        if (!dStr) return '—';
+        let str = String(dStr);
+        return str.includes('T') ? str.split('T')[0] : str.slice(0, 10);
+      };
 
-      let badgeColor = '#6b7280';
-      let badgeBg = 'rgba(107, 114, 128, 0.12)';
+      let badgeColor = '#6b7280'; let badgeBg = 'rgba(107, 114, 128, 0.12)';
       const cleanStatus = (row.status || '').trim();
-
       if (cleanStatus.includes('Pending') || cleanStatus.includes('Shortage')) {
         badgeColor = '#ef4444'; badgeBg = 'rgba(239, 68, 68, 0.15)';
       } else if (cleanStatus.includes('Hand') || cleanStatus.includes('Programming')) {
@@ -43,23 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <tr>
           <td><strong>${row.slno}</strong></td>
-          <td>${row.buyer}</td>
-          <td style="color:#3b82f6; font-weight:600; font-family: monospace;">${row.style}</td>
-          
-          <!-- Merchant -->
+          <td>${row.buyer || '—'}</td>
+          <td style="color:#3b82f6; font-weight:600; font-family: monospace;">${row.style || '—'}</td>
           <td>${fmtDate(row.issued_log_date)}</td>
           <td>${fmtDate(row.required_date_agreed_by_sample_manager)}</td>
           <td><strong>${(row.pcs_required || 0).toLocaleString()}</strong> pcs</td>
           <td>${fmtDate(row.committed_date_for_yarn)}</td>
-          
-          <!-- Store -->
           <td>${row.yarn_name || '—'}</td>
           <td style="color: ${row.yarn_in_house_yes_no === 'Yes' ? '#10b981' : '#ef4444'}; font-weight:bold;">${row.yarn_in_house_yes_no || 'No'}</td>
           <td>${row.yarn_in_house_yes_no === 'No' ? fmtDate(row.yarn_approximate_date) : 'In-House'}</td>
           <td style="color: ${row.accessories_in_housed_yes_no === 'Yes' ? '#10b981' : '#ef4444'}; font-weight:bold;">${row.accessories_in_housed_yes_no || 'No'}</td>
           <td>${row.accessories_in_housed_yes_no === 'No' ? fmtDate(row.accessories_approximate_date) : 'In-House'}</td>
-          
-          <!-- Designer -->
           <td><small>${row.sample_type_stage || '—'}</small></td>
           <td>${row.yarn_composition || '—'}</td>
           <td>${row.yarn_count || '—'}</td>
@@ -69,8 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <td><small>${row.designer_tension_spec || '—'}</small></td>
           <td><strong>${row.designer_weight || '—'}</strong></td>
           <td><small>W: ${row.designer_weight_validated_by || '—'} <br/> T: ${row.designer_tension_validated_by || '—'}</small></td>
-          
-          <!-- Programmer -->
           <td>${row.machine_type || '—'}</td>
           <td>${row.gauge || '—'}</td>
           <td>System ${row.machine_system || '—'}</td>
@@ -81,8 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <td><small>${row.structure_stitch_spec || '—'}</small></td>
           <td><small>Spd: ${row.programmer_speed_validated_by || '—'} <br/> Min: ${row.programmer_minutes_validated_by || '—'}</small></td>
           <td><small style="color:#10b981; font-weight:bold;">Validated</small></td>
-          
-          <!-- Knitting Floor Execution -->
           <td>${row.knit_mc_planned || 0} Mc</td>
           <td><strong style="color: #3b82f6;">${row.knit_mc_running || 0}</strong> Mc</td>
           <td>${(row.target_pcs || 0).toLocaleString()}</td>
@@ -94,24 +86,17 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="background: rgba(59, 130, 246, 0.05); font-weight:bold;">${row.actual_smv || '0.00'}</td>
           <td><small>${row.floor_smv_validated_by_programmer_head || '—'}</small></td>
           <td><small>${row.floor_smv_validated_by_knitting_head || '—'}</small></td>
-          
-          <!-- Makeup & Linking -->
           <td>${row.makeup_lines_planned || 0}</td>
           <td>${row.makeup_lines_running || 0}</td>
           <td><small>${row.makeup_line_wise_target_pcs || '—'}</small></td>
           <td><strong style="color: #10b981;">${row.makeup_line_wise_achieved_pcs || '—'}</strong></td>
-          
-          <!-- Finishing Process -->
           <td>${row.finishing_lines_planned || 0}</td>
           <td>${row.finishing_lines_running || 0}</td>
           <td><small>${row.finishing_line_wise_target_pcs || '—'}</small></td>
           <td><strong style="color: #10b981;">${row.finishing_line_wise_achieved_pcs || '—'}</strong></td>
-          
-          <!-- IE Costing -->
           <td style="color:#fb923c; font-weight:600;">${row.ie_knitting_process_wise_costed_smv || '0.00'}</td>
           <td style="color:#fb923c; font-weight:600;">${row.ie_makeup_process_wise_costed_smv || '0.00'}</td>
           <td style="color:#fb923c; font-weight:600;">${row.ie_finishing_process_wise_costed_smv || '0.00'}</td>
-          
           <td>
             <span style="color: ${badgeColor}; background: ${badgeBg}; border: 1px solid ${badgeColor}40; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: inline-block;">
               ${cleanStatus}
@@ -122,32 +107,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // Fetch initial manufacturing array dataset
   async function loadMasterGridLogs() {
     try {
       const response = await fetch('/api/factory/orders');
-      if (!response.ok) throw new Error('Data drop matrix sync error');
-      cachedOrders = await response.json(); // Cache data globally
+      if (!response.ok) throw new Error('Network error');
+      cachedOrders = await response.json();
       renderTableRows(cachedOrders);
     } catch (err) {
       console.error(err);
-      document.getElementById('grid-rows-target').innerHTML = `<tr><td colspan="55" style="text-align:center; padding:30px; color:#ef4444; font-weight:bold;">Failed to stream industrial parameters matrix from backend server.</td></tr>`;
     }
   }
 
-  // INTERACTIVE REAL-TIME EVENT FILTER HOOK
-  document.getElementById('dashboard-search').addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase().trim();
-    
-    // Filters array data metrics instantly based on Buyer or Style
-    const filtered = cachedOrders.filter(order => {
-      const matchBuyer = (order.buyer || '').toLowerCase().includes(term);
-      const matchStyle = (order.style || '').toLowerCase().includes(term);
-      return matchBuyer || matchStyle;
+  const searchInput = document.getElementById('dashboard-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      const filtered = cachedOrders.filter(o => 
+        (o.buyer || '').toLowerCase().includes(term) || (o.style || '').toLowerCase().includes(term)
+      );
+      renderTableRows(filtered);
     });
+  }
 
-    renderTableRows(filtered); // Re-renders only matching cell objects
-  });
+  const exportBtn = document.getElementById('export-csv-btn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      if (cachedOrders.length === 0) return alert("No records to export.");
+      const headers = ["SLNo", "Buyer Name", "Style Ref No", "Log Date", "Status"];
+      const cleanCell = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+      const csvRows = [headers.map(cleanCell).join(',')];
+      cachedOrders.forEach(r => {
+        csvRows.push([r.slno, r.buyer, r.style, r.issued_log_date, r.status].map(cleanCell).join(','));
+      });
+      const blob = new Blob(["\uFEFF" + csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `EMS_Report_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    });
+  }
 
   loadMasterGridLogs();
 });
