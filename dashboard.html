@@ -5,8 +5,14 @@
   <title>Helicon Ltd - Protected Monitoring Dashboard</title>
   <style>
     body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 20px; margin: 0; }
-    header { border-bottom: 1px solid #1f2937; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+    header { border-bottom: 1px solid #1f2937; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
     h1 { margin: 0; font-size: 22px; color: #fff; }
+    
+    /* Search Bar Layout Component */
+    .search-container { margin-bottom: 20px; display: flex; gap: 10px; max-width: 450px; }
+    .search-input { width: 100%; padding: 10px 14px; background: #111827; border: 1px solid #1f2937; border-radius: 4px; color: #fff; font-size: 14px; }
+    .search-input:focus { outline: none; border-color: #3b82f6; background: #1e293b; }
+    
     .table-container { background-color: #111827; border: 1px solid #1f2937; border-radius: 6px; overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
     th { background-color: #1f2937; color: #9ca3af; padding: 12px 14px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #374151; letter-spacing: 0.5px; }
@@ -32,10 +38,14 @@
       </div>
     </header>
 
+    <!-- ADDED: Live Dashboard Searching Interface Box -->
+    <div class="search-container">
+      <input type="text" id="dashboard-search" class="search-input" placeholder="🔍 Search by Buyer Name or Style Reference ID...">
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
-          <!-- Department Group Labels Header Row -->
           <tr style="background: #111827;">
             <th colspan="3" class="dept-group" style="background: #1e1b4b; color: #818cf8;">📋 Job Tracking Core</th>
             <th colspan="4" class="dept-group" style="background: #14532d; color: #4ade80;">💼 Merchandiser Spec</th>
@@ -47,26 +57,19 @@
             <th colspan="4" class="dept-group" style="background: #581c87; color: #c084fc;">👔 Finishing Process</th>
             <th colspan="4" class="dept-group" style="background: #831843; color: #f472b6;">📊 Industrial Engineering (IE)</th>
           </tr>
-          <!-- Field Parameter Column Names Row -->
           <tr>
             <th>SLNo</th>
             <th>Buyer Name</th>
             <th>Style Ref No</th>
-            
-            <!-- Merchant -->
             <th>Log Date</th>
             <th>Agreed Req Date</th>
             <th>Pcs Req</th>
             <th>Yarn Comm Date</th>
-            
-            <!-- Store -->
             <th>Yarn Spec</th>
             <th>Yarn In-Hse?</th>
             <th>Yarn Approx Date</th>
             <th>Acc In-Hse?</th>
             <th>Acc Approx Date</th>
-            
-            <!-- Designer -->
             <th>Sample Stage</th>
             <th>Yarn Comp</th>
             <th>Yarn Count</th>
@@ -76,8 +79,6 @@
             <th>Tension Spec</th>
             <th>Tgt Weight</th>
             <th>Sign-offs (W / T)</th>
-            
-            <!-- Programmer -->
             <th>Mc Model</th>
             <th>Gauge</th>
             <th>Systems</th>
@@ -88,8 +89,6 @@
             <th>Stitch Structure</th>
             <th>Sign-offs (Spd / Min)</th>
             <th>Valid Signatures</th>
-            
-            <!-- Knitting Floor -->
             <th>Mc Plan</th>
             <th>Mc Run</th>
             <th>Floor Tgt Pcs</th>
@@ -101,29 +100,22 @@
             <th>Actual SMV</th>
             <th>SMV Valid (Prog)</th>
             <th>SMV Valid (Knit)</th>
-            
-            <!-- Makeup -->
             <th>Plan Lines</th>
             <th>Run Lines</th>
             <th>Line Target Pcs</th>
             <th>Line Achieved Pcs</th>
-            
-            <!-- Finishing -->
             <th>Plan Lines</th>
             <th>Run Lines</th>
             <th>Line Target Pcs</th>
             <th>Line Achieved Pcs</th>
-            
-            <!-- IE Costing -->
             <th>Knit Cost SMV</th>
             <th>Makeup Cost SMV</th>
             <th>Finish Cost SMV</th>
-            
             <th>Status Indicator</th>
           </tr>
         </thead>
         <tbody id="grid-rows-target">
-          <!-- Rendered Loop Elements Injected Safely via app_v2.js -->
+          <!-- Loaded dynamically -->
         </tbody>
       </table>
     </div>
