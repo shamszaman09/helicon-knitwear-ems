@@ -10,30 +10,41 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// REDIRECTED CONNECTIONS TARGETING OFFICE WORKPLACE DATABASE
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
-  database: 'postgres', 
+  database: 'knitwear_db', 
   port: 5432,
-  password: ''
+  password: '' // Enter your office PC PostgreSQL password here if you created one
 });
 
+// SELF-HEALING INDUSTRIAL DATABASE INITIALIZER
 async function initializeDatabase() {
   try {
-    console.log('Verifying factory database structure...');
+    console.log('Verifying factory database structure against knitwear_db...');
+    
+    // 1. Maintain clean multi-department authorization profiles table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS system_users (
-          id SERIAL PRIMARY KEY, username VARCHAR(100) UNIQUE NOT NULL,
-          password_hash VARCHAR(255) NOT NULL, department VARCHAR(50) NOT NULL
-      );
-    `);
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS orders (
-          slno SERIAL PRIMARY KEY, buyer VARCHAR(255) NOT NULL, style VARCHAR(100) UNIQUE NOT NULL, status VARCHAR(100) DEFAULT 'Yarn-Pending'
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(100) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          department VARCHAR(50) NOT NULL
       );
     `);
 
-    // AUTO ALTERS FOR ALL YOUR DETAILED DEPARTMENT LAYOUT FIELDS
+    // 2. Base table verification for tracking matrix rows
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+          slno SERIAL PRIMARY KEY,
+          buyer VARCHAR(255) NOT NULL,
+          style VARCHAR(100) UNIQUE NOT NULL,
+          status VARCHAR(100) DEFAULT 'Yarn-Pending'
+      );
+    `);
+
+    // 3. SCHEMA AUTO ALTER PATCHES - FORCE ALL COLUMNS TO EXIST ON BOOT WITHOUT DROPPING DATA
     const patches = [
       "issued_log_date DATE", "required_date_agreed_by_sample_manager DATE", "pcs_required INT DEFAULT 0",
       "committed_date_for_yarn DATE", "committed_date_for_accessories DATE", "yarn_name VARCHAR(255)",
@@ -59,72 +70,122 @@ async function initializeDatabase() {
       await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ${col};`);
     }
 
+    // 4. Pre-seed baseline authorization data lines safely
     await pool.query(`
       INSERT INTO system_users (username, password_hash, department) VALUES
       ('merch1', 'pass123', 'merchant'), ('store1', 'pass123', 'store'), ('design1', 'pass123', 'designer'),
       ('prog1', 'pass123', 'programmer'), ('knit1', 'pass123', 'knitting'), ('makeup1', 'pass123', 'makeup'),
       ('finish1', 'pass123', 'finishing'), ('ie1', 'pass123', 'ie') ON CONFLICT (username) DO NOTHING;
     `);
-    console.log('✅ Automated schema columns self-healed successfully.');
-  } catch (err) { console.error('❌ Database Sync Failure:', err.message); }
+    console.log('✅ Automated database schema self-healed and accounts verified successfully.');
+  } catch (err) { console.error('❌ Database Initialization Failed:', err.message); }
 }
 
 pool.connect((err, client, release) => {
-  if (err) return console.error('Postgres connection pool error:', err.stack);
+  if (err) return console.error('Postgres database connection pool block:', err.stack);
   console.log('Connected smoothly to PostgreSQL Local Instance.');
   release();
   initializeDatabase();
 });
 
-// AUTHENTICATION
+// -------------------------------------------------------------
+// CORE AUTHENTICATION AND SIGNUP SECTOR HANDLERS
+// -------------------------------------------------------------
+
+// DEPARTMENT USER LOGIN VERIFICATION GATE
 app.post('/api/factory/auth', async (req, res) => {
   const { username, password, department } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM system_users WHERE username = $1 AND password_hash = $2 AND department = $3', [username, password, department]);
+    const result = await pool.query(
+      'SELECT * FROM system_users WHERE username = $1 AND password_hash = $2 AND department = $3', 
+      [username, password, department]
+    );
     if (result.rows.length > 0) {
       res.json({ success: true, token: `token_${Date.now()}`, department: result.rows[0].department });
-    } else { res.status(401).json({ success: false, error: 'Access denied.' }); }
+    } else { 
+      res.status(401).json({ success: false, error: 'Access denied for this department sector.' }); 
+    }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// MERCHANDISER INTAKE
+// ADMINISTRATIVE NEW USER REGISTRY ENGINE
+app.post('/api/factory/signup', async (req, res) => {
+  const { username, password, department } = req.body;
+  try {
+    const userCheck = await pool.query('SELECT id FROM system_users WHERE username = $1', [username]);
+    if (userCheck.rows.length > 0) {
+      return res.status(400).json({ success: false, error: 'Username signature index is already taken.' });
+    }
+    await pool.query(
+      'INSERT INTO system_users (username, password_hash, department) VALUES ($1, $2, $3)', 
+      [username, password, department]
+    );
+    res.status(201).json({ success: true, message: 'Department credentials stored successfully!' });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// -------------------------------------------------------------
+// SECURE SYSTEM LOG PRODUCTION DATA TUNNELS
+// -------------------------------------------------------------
+
+// GET MASTER PROGRESS LOG RECORDS
+app.get('/api/factory/orders', async (req, res) => {
+  try { 
+    const result = await pool.query('SELECT * FROM orders ORDER BY slno DESC;'); 
+    res.json(result.rows); 
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// MERCHANDISER SYSTEM STYLE INTAKE INITIALIZATION
 app.post('/api/factory/intake', async (req, res) => {
   const { buyer, style, issued_log_date, required_date_agreed_by_sample_manager, pcs_required, committed_date_for_yarn, committed_date_for_accessories } = req.body;
   try {
-    await pool.query(
-      `INSERT INTO orders (buyer, style, issued_log_date, required_date_agreed_by_sample_manager, pcs_required, committed_date_for_yarn, committed_date_for_accessories, status) VALUES ($1, $2, $3, $4, $5, $6, $7, 'Yarn-Pending') RETURNING *;`,
-      [buyer, style, issued_log_date || null, required_date_agreed_by_sample_manager || null, pcs_required || 0, committed_date_for_yarn || null, committed_date_for_accessories || null]
-    );
-    res.status(201).json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    const queryStr = `
+      INSERT INTO orders (buyer, style, issued_log_date, required_date_agreed_by_sample_manager, pcs_required, committed_date_for_yarn, committed_date_for_accessories, status) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'Yarn-Pending') RETURNING *;
+    `;
+    const result = await pool.query(queryStr, [
+      buyer, style, 
+      issued_log_date || null, 
+      required_date_agreed_by_sample_manager || null, 
+      pcs_required || 0, 
+      committed_date_for_yarn || null, 
+      committed_date_for_accessories || null
+    ]);
+    // FIXED: Returns fields structural objects directly
+    res.status(201).json({ success: true, order: result.rows, updatedOrder: result.rows });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// UNIFIED SYSTEM DYNAMIC UPDATE API (Handles Store, Designer, Programmer, Knitting, Makeup, Finishing, IE updates)
+// UNIVERSAL ADAPTIVE OPERATION PATCH ENGINE FOR SECTOR SUBMISSIONS
 app.put('/api/factory/component-update', async (req, res) => {
   const { style, fields } = req.body;
   try {
-    if (!style || !fields) return res.status(400).json({ success: false, error: 'Missing parameters' });
+    if (!style || !fields) return res.status(400).json({ success: false, error: 'Missing parameters.' });
     const keys = Object.keys(fields);
-    if (keys.length === 0) return res.status(400).json({ success: false, error: 'No fields provided' });
+    if (keys.length === 0) return res.status(400).json({ success: false, error: 'No fields provided.' });
     
     const values = [style];
     const clauses = keys.map((key, i) => { values.push(fields[key]); return `${key} = $${i + 2}`; });
+    
+    // DEFINITIVE TRACKING ALIGNMENT FIX: Dynamic returning row query capture execution
     const result = await pool.query(`UPDATE orders SET ${clauses.join(', ')} WHERE style = $1 RETURNING *;`, values);
-    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Style not found' });
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Style entry not discovered.' });
+    
+    // DEFINITIVE SYNC FIX: Explicit confirmation output objects passback parameters mapping
+    res.json({ success: true, updatedOrder: result.rows, order: result.rows });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// GET READ RECORES LOG LINES
-app.get('/api/factory/orders', async (req, res) => {
-  try { const result = await pool.query('SELECT * FROM orders ORDER BY slno DESC;'); res.json(result.rows); }
-  catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// FRONTEND ACCESS PATH MAP RULES
+// -------------------------------------------------------------
+// EXPLICIT FIXED ASSET FILES DELIVERY FOR ROUTER MATRICES
+// -------------------------------------------------------------
 app.get('/designer-form.html', (req, res) => { res.sendFile(path.join(__dirname, '../frontend/designer-form.html')); });
 app.get('/programmer-form.html', (req, res) => { res.sendFile(path.join(__dirname, '../frontend/programmer-form.html')); });
 app.get('/ie-form.html', (req, res) => { res.sendFile(path.join(__dirname, '../frontend/ie-form.html')); });
+
+// Wildcard mapping route rendering the base application hub fallback panel
 app.get('{/*splat}', (req, res) => { res.sendFile(path.join(__dirname, '../frontend/index.html')); });
 
 app.listen(PORT, () => { console.log(`Helicon EMS system live on port: ${PORT}`); });
