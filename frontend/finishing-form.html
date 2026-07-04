@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - Finishing Terminal</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 40px 20px; margin: 0; }
+    .container { max-width: 550px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 6px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+    h2 { margin-top: 0; color: #fff; border-bottom: 1px solid #1f2937; padding-bottom: 10px; }
+    .meta-info { font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; background: rgba(192, 132, 252, 0.1); padding: 8px; border-radius: 4px; display: inline-block;}
+    .section-title { font-size: 13px; color: #c084fc; font-weight: bold; margin-top: 25px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px dashed #581c87; padding-bottom: 5px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select, textarea { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; font-size: 14px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #c084fc; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    button { width: 100%; margin-top: 30px; padding: 12px; background: #581c87; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    button:hover { background: #3b0764; }
+    .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; color: #10b981; font-weight: bold; }
+    .nav-links { display: flex; justify-content: space-between; margin-top: 25px; font-size: 13px; border-top: 1px solid #1f2937; padding-top: 15px; }
+    a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>👔 Finishing Department Terminal</h2>
+    <div id="role-tag" class="meta-info">Packing & QA Floor Active</div>
+    
+    <form id="finishing-form">
+      <label>Select Active Style Track</label>
+      <select id="style-select" required>
+        <option value="">-- Fetching active tracking entries... --</option>
+      </select>
+
+      <div class="section-title">Capacity & Scheduling Allocation</div>
+      
+      <div class="grid-2">
+        <div>
+          <label>Total Lines Planned</label>
+          <input type="number" id="finishing_lines_planned" required min="0" placeholder="0">
+        </div>
+        <div>
+          <label>Total Running Lines</label>
+          <input type="number" id="finishing_lines_running" required min="0" placeholder="0">
+        </div>
+      </div>
+
+      <div class="section-title">Line-Wise Productivity Monitoring</div>
+      
+      <label>Running Line-Wise Target Pcs</label>
+      <textarea id="finishing_line_wise_target_pcs" required placeholder="e.g., Line 1: 500 pcs, Line 2: 500 pcs" rows="2"></textarea>
+
+      <label>Running Line-Wise Achieved Pcs</label>
+      <textarea id="finishing_line_wise_achieved_pcs" required placeholder="e.g., Line 1: 490 pcs, Line 2: 485 pcs" rows="2"></textarea>
+
+      <label>Deployment Pipeline Status</label>
+      <select id="status" required>
+        <option value="Final Quality Inspection" selected>Final Quality Inspection</option>
+        <option value="Hangtag & Poly Packing">Hangtag & Poly Packing</option>
+        <option value="Carton Assortment Ready">Carton Assortment Ready</option>
+      </select>
+
+      <button type="submit">Commit Finishing Progress Logs</button>
+      <div id="status-msg" class="msg">Line-wise packaging and QA stats saved cleanly!</div>
+    </form>
+
+    <div class="nav-links">
+      <a href="/dashboard.html">🖥️ View Production Dashboard</a>
+      <a href="/index.html">🚪 Exit Terminal</a>
+    </div>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('helicon_token')) window.location.href = '/index.html';
+
+    async function populateStyleDropdown() {
+      try {
+        const response = await fetch('/api/factory/orders');
+        const orders = await response.json();
+        const select = document.getElementById('style-select');
+        select.innerHTML = '<option value="">-- Choose Active Style Reference --</option>';
+        orders.forEach(order => {
+          const opt = document.createElement('option');
+          opt.value = order.style;
+          opt.textContent = `${order.style} (${order.buyer})`;
+          select.appendChild(opt);
+        });
+      } catch (err) { console.error(err); }
+    }
+
+    document.getElementById('finishing-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('status-msg');
+      msg.style.display = 'none';
+
+      const payload = {
+        style: document.getElementById('style-select').value,
+        fields: {
+          finishing_lines_planned: parseInt(document.getElementById('finishing_lines_planned').value, 10),
+          finishing_lines_running: parseInt(document.getElementById('finishing_lines_running').value, 10),
+          finishing_line_wise_target_pcs: document.getElementById('finishing_line_wise_target_pcs').value,
+          finishing_line_wise_achieved_pcs: document.getElementById('finishing_line_wise_achieved_pcs').value,
+          status: document.getElementById('status').value
+        }
+      };
+
+      try {
+        const response = await fetch('/api/factory/component-update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (response.ok) {
+          msg.style.display = 'block';
+          document.getElementById('finishing-form').reset();
+          populateStyleDropdown();
+        }
+      } catch (err) { console.error(err); }
+    });
+
+    populateStyleDropdown();
+  </script>
+</body>
+</html>

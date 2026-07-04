@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - Register Terminal Account</title>
+  <style>
+    body { background: #0b0f19; color: #f3f4f6; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .signup-box { background: #111827; padding: 30px; border: 1px solid #1f2937; border-radius: 6px; width: 340px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+    h2 { margin-top: 0; color: #fff; text-align: center; border-bottom: 1px solid #1f2937; padding-bottom: 10px; font-size: 20px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: #10b981; }
+    button { width: 100%; margin-top: 25px; padding: 12px; background: #10b981; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    button:hover { background: #059669; }
+    .msg { font-size: 13px; margin-top: 15px; text-align: center; display: none; font-weight: bold; padding: 8px; border-radius: 4px; }
+    .back-home { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="signup-box">
+    <h2>Create System Credentials</h2>
+    <form id="signup-form">
+      <label>Username / User ID</label>
+      <input type="text" id="username" required placeholder="e.g., merch2, ie2">
+      
+      <label>Security Password</label>
+      <input type="password" id="password" required placeholder="Enter secure password">
+      
+      <label>Assigned Department Sector</label>
+      <select id="department" required>
+        <option value="merchant">Merchandiser Intake</option>
+        <option value="store">Material Store</option>
+        <option value="designer">Technical / Designer</option>
+        <option value="programmer">M1 CAD Programmer</option>
+        <option value="knitting">Knitting Floor Production</option>
+        <option value="makeup">Makeup & Linking</option>
+        <option value="finishing">Finishing Department</option>
+        <option value="ie">IE (Industrial Engineering)</option>
+      </select>
+      <button type="submit">Save Department Access Key</button>
+      <div id="status-msg" class="msg"></div>
+      <a href="/index.html" class="back-home">← Back to Main Hub</a>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgDiv = document.getElementById('status-msg');
+      msgDiv.style.display = 'none';
+
+      const payload = {
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        department: document.getElementById('department').value
+      };
+
+      try {
+        const response = await fetch('/api/factory/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        msgDiv.style.display = 'block';
+
+        if (response.ok && data.success) {
+          msgDiv.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+          msgDiv.style.color = '#10b981';
+          msgDiv.textContent = data.message || 'Account created successfully!';
+          document.getElementById('signup-form').reset();
+        } else {
+          msgDiv.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+          msgDiv.style.color = '#ef4444';
+          msgDiv.textContent = data.error || 'Failed to register account.';
+        }
+      } catch (err) {
+        console.error('Signup network failure:', err);
+        msgDiv.style.display = 'block';
+        msgDiv.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+        msgDiv.style.color = '#ef4444';
+        msgDiv.textContent = 'Network communication error.';
+      }
+    });
+  </script>
+</body>
+</html>

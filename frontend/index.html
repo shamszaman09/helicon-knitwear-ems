@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon Ltd - EMS Portal</title>
+  <style>
+    body { background: #0b0f19; color: #f3f4f6; font-family: sans-serif; text-align: center; padding: 50px 20px; }
+    h1 { color: #fff; margin-bottom: 10px; font-size: 28px; }
+    p { color: #9ca3af; margin-bottom: 40px; }
+    .dept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+    .dept-card { background: #111827; border: 1px solid #1f2937; padding: 25px; border-radius: 6px; text-decoration: none; color: #fff; font-weight: bold; font-size: 16px; transition: transform 0.2s, border-color 0.2s; display: block; }
+    .dept-card:hover { transform: translateY(-3px); border-color: #3b82f6; background: #1e293b; }
+    .admin-bar { margin-top: 50px; border-top: 1px solid #1f2937; padding-top: 25px; }
+    .admin-link { color: #10b981; font-size: 14px; text-decoration: none; font-weight: 600; border: 1px solid #10b981; padding: 10px 20px; border-radius: 4px; display: inline-block; }
+    .admin-link:hover { background: #10b981; color: #fff; }
+  </style>
+</head>
+<body>
+  <h1>Helicon Ltd. Knitwear Manufacturing EMS</h1>
+  <p>Select your assigned department terminal to log in</p>
+  <div class="dept-grid">
+    <a href="/login.html?dept=merchant" class="dept-card">💼 Merchandiser Intake</a>
+    <a href="/login.html?dept=store" class="dept-card">📦 Material Store</a>
+    <a href="/login.html?dept=designer" class="dept-card">🎨 Technical / Designer</a>
+    <a href="/login.html?dept=programmer" class="dept-card">💻 M1 CAD Programmer</a>
+    <a href="/login.html?dept=knitting" class="dept-card">⚙️ Knitting Floor Production</a>
+    <a href="/login.html?dept=makeup" class="dept-card">🪡 Makeup & Linking</a>
+    <a href="/login.html?dept=finishing" class="dept-card">👔 Finishing Department</a>
+    <a href="/login.html?dept=ie" class="dept-card">📊 IE (Industrial Engineering)</a>
+  </div>
+  <div class="admin-bar">
+    <a href="/signup.html" class="admin-link">🔒 System Administrator: Create Department Accounts</a>
+  </div>
+</body>
+</html>

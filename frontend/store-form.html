@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - Material Store Terminal</title>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; padding: 40px 20px; }
+    .container { max-width: 550px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 6px; padding: 30px; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; }
+    input, select { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; }
+    .date-group { background: #1e293b; padding: 12px; border-radius: 4px; margin-top: 5px; border: 1px solid #334155; }
+    button { width: 100%; margin-top: 25px; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; color: #10b981; font-weight: bold; }
+    .nav-links { display: flex; justify-content: space-between; margin-top: 25px; font-size: 13px; border-top: 1px solid #1f2937; padding-top: 15px; }
+    a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📦 Material Store Inventory Terminal</h2>
+    <form id="store-form">
+      <label>Select Target Style Order</label>
+      <select id="style-select" required><option value="">-- Loading --</option></select>
+      <label>Yarn Name Specification</label>
+      <input type="text" id="yarn_name" required>
+      <label>Yarn In-House Status</label>
+      <select id="yarn_in_house_yes_no" onchange="toggleYarnDate()">
+        <option value="Yes">Yes</option>
+        <option value="No" selected>No</option>
+      </select>
+      <div id="yarn-date-block" class="date-group">
+        <label>Yarn Approximate Arrival Date</label>
+        <input type="date" id="yarn_approximate_date">
+      </div>
+      <label>Accessories In-House Status</label>
+      <select id="accessories_in_housed_yes_no" onchange="toggleAccDate()">
+        <option value="Yes">Yes</option>
+        <option value="No" selected>No</option>
+      </select>
+      <div id="acc-date-block" class="date-group">
+        <label>Accessories Approximate Arrival Date</label>
+        <input type="date" id="accessories_approximate_date">
+      </div>
+      <label>Dates Confirmed by Merchant?</label>
+      <select id="store_date_confirmed_by_merchant" required>
+        <option value="No">No (Pending Verification)</option>
+        <option value="Yes">Yes (Verified & Approved)</option>
+      </select>
+      <button type="submit">Commit Inventory Log Parameters</button>
+      <div id="status-msg" class="msg">Material store specifications updated successfully!</div>
+    </form>
+    <div class="nav-links">
+      <a href="/dashboard.html">🖥️ View Production Dashboard</a>
+      <a href="/index.html">🚪 Exit Terminal</a>
+    </div>
+  </div>
+  <script>
+    if (!localStorage.getItem('helicon_token')) window.location.href = '/index.html';
+    function toggleYarnDate() {
+      const b = document.getElementById('yarn-date-block');
+      b.style.display = document.getElementById('yarn_in_house_yes_no').value === 'No' ? 'block' : 'none';
+    }
+    function toggleAccDate() {
+      const b = document.getElementById('acc-date-block');
+      b.style.display = document.getElementById('accessories_in_housed_yes_no').value === 'No' ? 'block' : 'none';
+    }
+    async function loadDropdown() {
+      try {
+        const response = await fetch('/api/factory/orders');
+        const orders = await response.json();
+        const select = document.getElementById('style-select');
+        select.innerHTML = '<option value="">-- Choose Style --</option>';
+        orders.forEach(o => {
+          const opt = document.createElement('option'); opt.value = o.style; opt.textContent = o.style; select.appendChild(opt);
+        });
+      } catch (err) { console.error(err); }
+    }
+    document.getElementById('store-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const response = await fetch('/api/factory/component-update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            style: document.getElementById('style-select').value,
+            fields: {
+              yarn_name: document.getElementById('yarn_name').value,
+              yarn_in_house_yes_no: document.getElementById('yarn_in_house_yes_no').value,
+              yarn_approximate_date: document.getElementById('yarn_approximate_date').value || null,
+              accessories_in_housed_yes_no: document.getElementById('accessories_in_housed_yes_no').value,
+              accessories_approximate_date: document.getElementById('accessories_approximate_date').value || null,
+              store_date_confirmed_by_merchant: document.getElementById('store_date_confirmed_by_merchant').value,
+              status: document.getElementById('store_date_confirmed_by_merchant').value === 'Yes' ? 'Yarn & Accessories Ready' : 'Yarn-Pending'
+            }
+          })
+        });
+        if (response.ok) {
+          document.getElementById('status-msg').style.display = 'block';
+          document.getElementById('store-form').reset(); loadDropdown(); toggleYarnDate(); toggleAccDate();
+        }
+      } catch (err) { console.error(err); }
+    });
+    toggleYarnDate(); toggleAccDate(); loadDropdown();
+  </script>
+</body>
+</html>

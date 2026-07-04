@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Helicon EMS - Department Terminal Login</title>
+  <style>
+    body { background: #0b0f19; color: #f3f4f6; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .login-box { background: #111827; padding: 30px; border: 1px solid #1f2937; border-radius: 6px; width: 320px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+    h2 { margin-top: 0; text-transform: capitalize; color: #fff; border-bottom: 1px solid #1f2937; padding-bottom: 10px; font-size: 20px; text-align: center; }
+    label { display: block; font-size: 11px; color: #9ca3af; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #fff; box-sizing: border-box; font-size: 14px; }
+    button { width: 100%; margin-top: 25px; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    .error-msg { color: #ef4444; font-size: 13px; margin-top: 15px; text-align: center; display: none; }
+    .back-btn { display: block; text-align: center; margin-top: 15px; font-size: 12px; color: #9ca3af; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2 id="dept-title">Department Terminal</h2>
+    <form id="login-form">
+      <label>User Identifier</label>
+      <input type="text" id="username" required placeholder="Enter username">
+      <label>Security Password</label>
+      <input type="password" id="password" required placeholder="Enter password">
+      <button type="submit">Verify & Enter Terminal</button>
+      <div id="error" class="error-msg">Invalid login credentials for this sector.</div>
+      <a href="/index.html" class="back-btn">← Back to Main Hub</a>
+    </form>
+  </div>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const departmentName = urlParams.get('dept') || 'authorized';
+    document.getElementById('dept-title').textContent = departmentName + " Login";
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('error').style.display = 'none';
+      try {
+        const response = await fetch('/api/factory/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value,
+            department: departmentName
+          })
+        });
+        const data = await response.json();
+        if (response.ok && data.success) {
+          localStorage.setItem('helicon_token', data.token);
+          localStorage.setItem('helicon_dept', departmentName);
+          window.location.href = `/${departmentName.toLowerCase().trim()}-form.html`;
+        } else {
+          document.getElementById('error').style.display = 'block';
+        }
+      } catch (err) { document.getElementById('error').style.display = 'block'; }
+    });
+  </script>
+</body>
+</html>
